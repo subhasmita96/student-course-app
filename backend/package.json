@@ -1,0 +1,16 @@
+{
+  "name": "student-course-app",
+  "version": "1.0.0",
+  "description": "Student & Course enrollment app - Node.js + PostgreSQL",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}

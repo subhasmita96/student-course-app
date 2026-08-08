@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Course Portal</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🎓 Student Course Portal</h1>
+    <div id="userBadge" class="hidden">
+      Logged in as <span id="userName"></span>
+      <button id="logoutBtn">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- AUTH SECTION -->
+    <section id="authSection" class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="login">Login</button>
+        <button class="tab-btn" data-tab="register">Register</button>
+      </div>
+
+      <form id="loginForm" class="tab-content active">
+        <label>Email <input type="email" id="loginEmail" required /></label>
+        <label>Password <input type="password" id="loginPassword" required /></label>
+        <button type="submit">Login</button>
+        <p class="msg" id="loginMsg"></p>
+      </form>
+
+      <form id="registerForm" class="tab-content">
+        <label>Full Name <input type="text" id="regName" required /></label>
+        <label>Email <input type="email" id="regEmail" required /></label>
+        <label>Password <input type="password" id="regPassword" required /></label>
+        <button type="submit">Create Account</button>
+        <p class="msg" id="registerMsg"></p>
+      </form>
+    </section>
+
+    <!-- APP SECTION (visible after login) -->
+    <section id="appSection" class="hidden">
+      <div class="card">
+        <h2>Available Courses</h2>
+        <div id="courseList" class="course-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2>My Enrollments</h2>
+        <ul id="enrollmentList"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
