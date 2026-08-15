@@ -54,7 +54,7 @@ pipeline {
                 // Give the app a few seconds to bind, then hit the health endpoint
                 sh '''
                     for i in $(seq 1 15); do
-                        if curl -sf http://host.docker.internal:3000/api/health; then
+                        if curl -sf http://localhost:3000/api/health; then
                             echo "App is up"
                             exit 0
                         fi
