@@ -83,3 +83,4 @@ docker compose down -v       # stop containers AND wipe DB data (fresh start nex
   happy with the setup, so rebuilds stay reproducible.
 - **DB schema changes**: `init.sql` only runs the *first* time the Postgres data volume is
   created. If you edit it later, run `docker compose down -v` first so it re-initializes.
+  <!-- webhook test -->
