@@ -1,11 +1,21 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const bcrypt = require("bcryptjs");
 const { Pool } = require("pg");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+
+// Security headers (CSP, X-Frame-Options, HSTS, etc.) — added to pass the
+// "express-no-helmet" SAST rule and to actually harden the app.
+app.use(helmet());
+
+// CORS restricted to a known origin instead of a wildcard — added to pass
+// the "cors-wildcard-origin" SAST rule. Set ALLOWED_ORIGIN in production;
+// defaults to the app's own local address for dev/test.
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "http://localhost:3000" }));
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 

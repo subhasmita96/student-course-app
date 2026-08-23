@@ -1,0 +1,97 @@
+# Semgrep configuration for the Students & Courses application
+#
+# Runs against the Node.js/Express backend. Combines Semgrep's hosted
+# rulesets (auto-updated, maintained by the Semgrep team) with a couple
+# of project-specific rules tailored to this app's known patterns
+# (raw pg queries, bcrypt usage, express-session-less auth).
+#
+# Usage:
+#   semgrep scan --config .semgrep.yml --json --output semgrep-report.json backend/
+#   semgrep scan --config .semgrep.yml backend/                (human-readable, local run)
+
+rules:
+  # ---- Project-specific rules ----
+
+  - id: raw-sql-string-concat
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      Possible SQL injection: a template literal or string concatenation is
+      being passed where a parameterized query value belongs. Use pg's
+      parameterized query syntax ($1, $2, ...) instead of interpolating
+      variables directly into the SQL string.
+    patterns:
+      - pattern-either:
+          - pattern: pool.query(`...${$X}...`, ...)
+          - pattern: pool.query("..." + $X + "...", ...)
+    metadata:
+      category: security
+      cwe: "CWE-89: SQL Injection"
+      owasp: "A03:2021 - Injection"
+
+  - id: hardcoded-db-credentials
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      Database credentials appear to be hardcoded rather than read from
+      environment variables. Use process.env for host/user/password/database
+      values, even in local defaults.
+    patterns:
+      - pattern-either:
+          - pattern: 'new Pool({ ..., password: "...", ... })'
+          - pattern: 'new Pool({ ..., user: "...", ... })'
+    metadata:
+      category: security
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+
+  - id: missing-bcrypt-cost-factor-check
+    languages: [javascript, typescript]
+    severity: INFO
+    message: >
+      bcrypt.hash called with a cost factor below 10 is considered weak for
+      password storage in 2026. Confirm the salt rounds argument is >= 10.
+    patterns:
+      - pattern: bcrypt.hash($PW, $ROUNDS)
+      - metavariable-comparison:
+          metavariable: $ROUNDS
+          comparison: $ROUNDS < 10
+    metadata:
+      category: security
+      cwe: "CWE-916: Use of Password Hash With Insufficient Computational Effort"
+
+  - id: express-no-helmet
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      Express app does not appear to use the helmet middleware. Security
+      headers (CSP, X-Frame-Options, HSTS, etc.) should be set explicitly.
+    patterns:
+      - pattern: const $APP = express()
+      - pattern-not-inside: |
+          ...
+          $APP.use(helmet())
+          ...
+    metadata:
+      category: security
+      owasp: "A05:2021 - Security Misconfiguration"
+
+  - id: cors-wildcard-origin
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      cors() is used with no origin restriction, allowing any site to make
+      credentialed requests. Restrict to known origins in production.
+    patterns:
+      - pattern: app.use(cors())
+    metadata:
+      category: security
+      owasp: "A05:2021 - Security Misconfiguration"
+
+# ---- Standard hosted rulesets (pulled automatically by the pipeline) ----
+# These are referenced directly on the Jenkins command line, not here, so
+# that they always pull the latest rule updates:
+#   p/security-audit
+#   p/nodejs
+#   p/expressjs
+#   p/owasp-top-ten
+#   p/secrets

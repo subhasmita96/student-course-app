@@ -1,0 +1,89 @@
+# OWASP ZAP Automation Framework plan for the Students & Courses application
+#
+# Runs a baseline + active scan against the deployed test environment.
+# Referenced by the Jenkinsfile's "DAST Scan" stage via:
+#   zap.sh -cmd -autorun zap-automation.yaml
+#
+# Docs: https://www.zaproxy.org/docs/automate/automation-framework/
+
+env:
+  contexts:
+    - name: "students-courses-app"
+      urls:
+        - "http://localhost:3000"
+      includePaths:
+        - "http://localhost:3000.*"
+      excludePaths: []
+      authentication:
+        method: "form"
+        parameters:
+          loginPageUrl: "http://localhost:3000/index.html"
+          loginRequestUrl: "http://localhost:3000/api/login"
+          loginRequestBody: "email={%username%}&password={%password%}"
+        verification:
+          method: "response"
+          loggedInRegex: "\\Qstudent\\E"
+          loggedOutRegex: "\\Qerror\\E"
+      users:
+        - name: "test-student"
+          credentials:
+            username: "zap-scan-user@example.com"
+            password: "$ZAP_TEST_PASSWORD"
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+
+jobs:
+  # 1. Passive spider - crawls the app to discover endpoints
+  - type: spider
+    parameters:
+      context: "students-courses-app"
+      user: "test-student"
+      url: "http://localhost:3000"
+      maxDuration: 5
+      maxDepth: 10
+
+  # 2. Ajax spider - catches endpoints only reachable via the frontend JS
+  - type: spiderAjax
+    parameters:
+      context: "students-courses-app"
+      url: "http://localhost:3000"
+      maxDuration: 3
+
+  # 3. Passive scan - always-on checks (headers, cookies, info disclosure)
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 5
+
+  # 4. Active scan - the actual attack simulation (SQLi, XSS, etc.)
+  - type: activeScan
+    parameters:
+      context: "students-courses-app"
+      user: "test-student"
+      policy: "Default Policy"
+      maxRuleDurationInMins: 5
+      maxScanDurationInMins: 30
+
+  # 5. Reports
+  - type: report
+    parameters:
+      template: "risk-confidence-html"
+      reportDir: "/zap/wrk/reports"
+      reportFile: "zap-dast-report"
+      reportTitle: "Students & Courses App - DAST Scan"
+      reportDescription: "OWASP ZAP baseline + active scan against the EC2 test deployment"
+    risks:
+      - high
+      - medium
+      - low
+      - info
+
+  - type: report
+    parameters:
+      template: "traditional-json"
+      reportDir: "/zap/wrk/reports"
+      reportFile: "zap-dast-report"
+
+  # 6. Fail the job on high-risk findings (evaluated by the Jenkinsfile
+  #    parsing the JSON report - see the "Security Gate" stage)
