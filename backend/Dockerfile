@@ -7,11 +7,12 @@ RUN npm install --omit=dev
 
 COPY . .
 
-# Create a dedicated non-root user and switch to it before running the app —
-# fixes the Semgrep "missing-user" finding (CWE-250: running as root).
-RUN groupadd -r appgroup && useradd -r -g appgroup -d /app -s /sbin/nologin appuser \
-    && chown -R appuser:appgroup /app
-USER appuser
+# Alpine's node:* images already include a built-in non-root "node" user —
+# no need to create one manually (that required groupadd/useradd, which
+# don't exist on Alpine). This also satisfies the earlier Semgrep
+# "missing-user" finding.
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 
