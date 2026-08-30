@@ -66,11 +66,11 @@ jobs:
       maxScanDurationInMins: 30
 
   # 5. Reports
-  - type: report
+    - type: report
     parameters:
       template: "risk-confidence-html"
       reportDir: "/zap/wrk/reports"
-      reportFile: "zap-dast-report"
+      reportFile: "zap-dast-report-html"
       reportTitle: "Students & Courses App - DAST Scan"
       reportDescription: "OWASP ZAP baseline + active scan against the EC2 test deployment"
     risks:
@@ -84,6 +84,3 @@ jobs:
       template: "traditional-json"
       reportDir: "/zap/wrk/reports"
       reportFile: "zap-dast-report"
-
-  # 6. Fail the job on high-risk findings (evaluated by the Jenkinsfile
-  #    parsing the JSON report - see the "Security Gate" stage)
