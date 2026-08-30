@@ -1,11 +1,3 @@
-# OWASP ZAP Automation Framework plan for the Students & Courses application
-#
-# Runs a baseline + active scan against the deployed test environment.
-# Referenced by the Jenkinsfile's "DAST Scan" stage via:
-#   zap.sh -cmd -autorun zap-automation.yaml
-#
-# Docs: https://www.zaproxy.org/docs/automate/automation-framework/
-
 env:
   contexts:
     - name: "students-courses-app"
@@ -35,7 +27,6 @@ env:
     progressToStdout: true
 
 jobs:
-  # 1. Passive spider - crawls the app to discover endpoints
   - type: spider
     parameters:
       context: "students-courses-app"
@@ -44,19 +35,16 @@ jobs:
       maxDuration: 5
       maxDepth: 10
 
-  # 2. Ajax spider - catches endpoints only reachable via the frontend JS
   - type: spiderAjax
     parameters:
       context: "students-courses-app"
       url: "http://localhost:3000"
       maxDuration: 3
 
-  # 3. Passive scan - always-on checks (headers, cookies, info disclosure)
   - type: passiveScan-wait
     parameters:
       maxDuration: 5
 
-  # 4. Active scan - the actual attack simulation (SQLi, XSS, etc.)
   - type: activeScan
     parameters:
       context: "students-courses-app"
@@ -65,8 +53,7 @@ jobs:
       maxRuleDurationInMins: 5
       maxScanDurationInMins: 30
 
-  # 5. Reports
-    - type: report
+  - type: report
     parameters:
       template: "risk-confidence-html"
       reportDir: "/zap/wrk/reports"
