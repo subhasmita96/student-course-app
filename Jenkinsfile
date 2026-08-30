@@ -174,7 +174,8 @@ pipeline {
         stage('DAST Scan') {
             steps {
                 sh '''
-                    mkdir -p ${SECURITY_DIR}/zap-reports
+                    mkdir -p reports
+                    chmod 777 reports
                     docker run --rm \
                         --network host \
                         -v "$(pwd):/zap/wrk/:rw" \
@@ -185,8 +186,7 @@ pipeline {
                             -autorun /zap/wrk/zap-automation.yaml \
                         || true
 
-                    cp -f zap-reports/zap-dast-report.json ${SECURITY_DIR}/ 2>/dev/null || \
-                    cp -f zap-dast-report.json ${SECURITY_DIR}/ 2>/dev/null || \
+                    cp -f reports/zap-dast-report.json ${SECURITY_DIR}/ 2>/dev/null || \
                     echo "Warning: ZAP JSON report not found at expected path — check ZAP container output above"
                 '''
             }
