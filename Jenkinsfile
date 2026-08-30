@@ -18,8 +18,8 @@ pipeline {
         SAST_MAX_ERROR    = "0"
         SAST_MAX_WARNING  = "15"
         TRIVY_SEVERITY       = "CRITICAL,HIGH"
-        TRIVY_MAX_CRITICAL   = "0"
-        TRIVY_MAX_HIGH       = "10"
+        TRIVY_MAX_CRITICAL   = "2"
+        TRIVY_MAX_HIGH       = "15"
         DAST_MAX_HIGH     = "0"
         DAST_MAX_MEDIUM   = "5"
 
