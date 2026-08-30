@@ -181,6 +181,7 @@ pipeline {
                         -e ZAP_TEST_PASSWORD="${ZAP_TEST_PASSWORD}" \
                         zaproxy/zap-stable:latest \
                         zap.sh -cmd \
+                            -port 8090 \
                             -autorun /zap/wrk/zap-automation.yaml \
                         || true
 
