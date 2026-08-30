@@ -70,6 +70,33 @@ pipeline {
             }
         }
 
+        // ---------------------------------------------------------------
+        // SonarQube — second, complementary SAST tool. Runs alongside
+        // Semgrep for broader static analysis coverage (bugs, code
+        // smells, maintainability, duplicate code, in addition to
+        // security vulnerabilities). Requires:
+        //   1. A SonarQube server reachable at http://localhost:9000
+        //      (installed via Docker on this same EC2 instance)
+        //   2. A Jenkins "Secret text" credential with ID SONAR_TOKEN,
+        //      containing a token generated in SonarQube under
+        //      My Account -> Security -> Generate Tokens
+        //   3. A sonar-project.properties file at the repo root
+        // ---------------------------------------------------------------
+        stage('SonarQube Scan') {
+            steps {
+                withCredentials([string(credentialsId: 'SONAR_TOKEN', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        docker run --rm \
+                            --network host \
+                            -v "$(pwd):/usr/src" \
+                            -w /usr/src \
+                            sonarsource/sonar-scanner-cli:latest \
+                            -Dsonar.token=${SONAR_TOKEN}
+                    '''
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             steps {
                 sh 'docker compose build'
@@ -174,8 +201,7 @@ pipeline {
         stage('DAST Scan') {
             steps {
                 sh '''
-                    mkdir -p reports
-                    chmod 777 reports
+                    mkdir -p ${SECURITY_DIR}/zap-reports
                     docker run --rm \
                         --network host \
                         -v "$(pwd):/zap/wrk/:rw" \
@@ -188,6 +214,9 @@ pipeline {
 
                     cp -f reports/zap-dast-report.json ${SECURITY_DIR}/ 2>/dev/null || \
                     echo "Warning: ZAP JSON report not found at expected path — check ZAP container output above"
+
+                    cp -f reports/zap-dast-report-html.html ${SECURITY_DIR}/ 2>/dev/null || \
+                    echo "Note: ZAP HTML report not found — JSON report is still used for the gate below"
                 '''
             }
         }
